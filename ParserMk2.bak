@@ -1,0 +1,20 @@
+#lang racket
+(require "Scanner.rkt")
+; form of all except for the first nonterminal is as such
+; is the first element a #f? in that case call the error function with the current list, it will pass the error up with a false and the line number
+; if not then do your cond statements that will determine which form this non-terminal takes based upon the scanner (I don't want to call scanner multiple
+; times though, so how do I circumvent that?! got it, every function will return a boolean appended to the scanner call with the rest of the list
+; so every function will expect a list to be returned with either: #f-somelist delimiter linenum \\\ or #t token restoflist (delimiter linenum)
+
+(define (error stringL)
+  ;stub this should return actual info scraped from the list 
+  (list #f 1)
+)
+
+(define (add-op stringL)
+  (cond
+    [(not(first stringL)) (error stringL)]
+    [(or (equal?(first(rest stringL)) #\+) (equal?(first(rest stringL)) #\-)) (append (list #t) (scanner (rest list)))]
+    [ else (error stringL)]
+    ))
+(add-op (list #t "+"))

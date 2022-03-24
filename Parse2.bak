@@ -1,0 +1,5 @@
+#lang racket
+
+(port->string )
+(open-input-file)
+(string->list) 

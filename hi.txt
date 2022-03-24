@@ -1,0 +1,5 @@
+read A 
+read B 
+sum:=A +B 
+write 5
+write sum / 5  $$

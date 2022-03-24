@@ -1,0 +1,130 @@
+#lang racket
+
+(provide readFi)
+(provide scanner)
+(define (readFi fileName)
+  (if (equal? fileName "none pizza with left pepperoni") #t
+  (append (string->list(port->string (open-input-file fileName))) (list "meh" 1))))
+
+;(print (printFi (readFi "hi.txt"))) ;just a test stub
+
+;delete any whitespace done
+
+;need to take in list and return a list of tokens done
+;alternatively need to take in a list and return a token and the rest of the list done
+
+(define(scanner slist)
+  (cond
+
+    [(boolean? slist) "Activating self destruct, cause im ded"]
+
+    [(empty? slist) (list #f)]
+
+    ;relatively untested
+    [(eqv? (first slist) #\newline) (scanner(endincrement(rest slist)))]
+    
+    [(eqv? (first slist) #\return)  (scanner(rest slist))]
+    [(eqv? (first slist) #\space) (scanner (rest slist))] ; if space or newlin
+    ;delete by calling scanner recursively
+
+    ;untested 
+    [(equal? (first slist) "meh") (append (list #f) (rest slist))]
+    
+    [(eqv? (first slist) #\/) (append (list "/") (rest slist))]  ;meh
+    ;this call for a divide operator
+
+    [(eqv? (first slist) #\*) (append (list "*" )(rest slist))]
+
+    [(eqv? (first slist) #\-) (append (list "-") (rest slist))]
+
+    [(eqv? (first slist) #\+) (append(list "+") (rest slist))]
+    ;THE FOLLOWING FUNCTION HASN'T BEEN FULLY TESTED!!!!!
+    [(and(eqv? (first slist) #\$) (eqv? (first(rest slist)) #\$)) (append (list "$$") (rest(rest slist)))]
+
+    [(eqv? (first slist) #\() (append(list "(" )(rest slist))]
+
+    [(eqv? (first slist) #\)) (append(list ")" )(rest slist))]
+
+    [(eqv? (first slist) #\=) (append(list #f) (rest slist))]
+
+    [(eqv? (first slist) #\:) (if(and(not(empty? (rest slist))) (eqv? (first(rest slist)) #\=)) (append(list ":=" )(rest(rest slist))) (append(list #f) (rest slist)))];here is the only place the scanner can declare an error
+
+    [(or(char-numeric? (first slist)) (eqv? (first slist) #\.)) (numbers (rest slist))]
+
+    [(char-alphabetic? (first slist)) (words (list) slist)] ; insert the recursive call to find out if it is a ID READ OR WRITE
+
+    [else (append (list #f) (rest slist))]  ;so I have decided that if the scanner reaches the end of the string without errors it will return true and empty string else false
+
+    
+    
+    ))
+
+
+(define (numbers slist)
+  (if (and(not (empty? slist))(or(eqv? (first slist) #\.)(char-numeric? (first slist)))) (numbers (rest slist)) (append(list "NUMBER")  slist)))
+; long but recall first and rest only work if the list is non-empty
+
+
+
+(define (specialOrId slist)
+  
+  (cond
+    [(equal? (list->string slist) "read") "READ"]
+    [(equal? (list->string slist) "write") "WRITE"]
+    ;[(equal? (list->string slist) "expr") "expr"] ;this is a test function for my parser delete when test done
+    [else "ID"]
+  ));returns the correct token for a list known to contain an alphabetical string
+
+(define (words idList sList)
+  (if (cond
+        [(empty? sList) #f]
+        [(eqv? (first sList) #\*) #f]
+        [(eqv? (first sList) #\/) #f]
+        [(eqv? (first sList) #\-) #f]
+        [(eqv? (first sList) #\+) #f]
+        [(eqv? (first sList) #\=) #f]
+        [(eqv? (first sList) #\:) #f]
+        ;THE NEXT COND HAS NOT YET BEEN FULLY TESTED
+        [(eqv? (first sList) #\$) #f]
+        [(eqv? (first sList) #\space) #f]
+        [(eqv? (first sList) #\newline) #f]
+        [(eqv? (first sList) #\() #f]
+        [(eqv? (first sList) #\)) #f]
+        [else #t]
+        )
+      (words (append idList(list(first sList)) ) (rest sList)) (append (list (specialOrId idList)) sList))
+      
+       
+)
+
+
+
+(define (scannerTest tokenList stringList id)
+
+  (cond
+    [(equal? id 0) (scannerTest tokenList (scanner (append stringList (list "meh" 1))) 1)]
+    [(and(equal? id 1) (boolean? (first stringList)))  (append tokenList (list(last stringList)))]
+    [else  (scannerTest (append tokenList(list (first stringList)) ) (scanner(rest stringList) )1)]
+     ))
+
+(define (endincrement sList)
+  (reverse(append (list (+ (first (reverse sList)) 1)) (rest (reverse sList)))))
+
+;(readFi "hi.txt")
+;(scanner (readFi "hi.txt"))
+(scannerTest (list) (readFi "Input06.txt") 0)
+;(scanner (rest (rest (readFi "hi.txt")))) 
+
+
+;(scanner (readFi "none pizza with left pepperoni"))
+
+
+;(readFi "hi.txt")
+
+
+
+;need to add a function that changes the count of the last variable of the list when it encounters a newline, which will always be instantiated as a 0 
+;todo, clean up your code
+;learn how to turn this into a module to be used with another project
+;maybe turn all character returns into string returns that way matching code in my parser will be easier
+;ask about returns with values and pass-by-values
